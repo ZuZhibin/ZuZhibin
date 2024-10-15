@@ -1,0 +1,48 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Aug 19 18:00:20 2024
+
+@author: 86158
+"""
+
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+
+# 假设 df 是已经读取的 DataFrame 
+# df = pd.read_excel('文件路径.xlsx', sheet_name='Sheet名称')
+#Please aweare that the spreadsheet is highly structured
+df = pd.read_excel('D:\工作\九安\管理人选择\Long only\Summary.xlsx', sheet_name='Agg')
+
+#highlight
+# 创建一个新的列，用于区分普通点和高亮点
+highlight_index = [0,2,10,13,14,15,17,20,24,27,28]
+
+
+# 使用 Plotly Express 创建基础散点图
+fig = px.scatter(df, x='Tracking Error', y='Annualized Excess Return', color='Catergories', title="alpha vs trackinng error (by categories)")
+
+# 手动添加标注，并设置字体大小
+shifts = [(10,10), (10,10),(10, 20),(-20, 10), (10,15),(10,10),(15,20),(-10,-10),(10,10),(10,10),(10,10)]  # 不同的偏移量组合
+# 高亮点的 x, y 坐标
+# 手动添加标注
+for i,shift in zip(highlight_index,shifts):
+    fig.add_annotation(
+        x=df.loc[i, 'Tracking Error'], 
+        y=df.loc[i, 'Annualized Excess Return'],
+        text=df.loc[i, 'Strategies'],
+        showarrow=False,
+        arrowhead=2,
+        xshift=shift[0],
+        yshift=shift[1],
+       
+    )
+
+
+## 更新布局以提高显示效果
+fig.update_traces(marker=dict(size=12, line=dict(width=2, color='DarkSlateGrey')),
+                  selector=dict(mode='markers'))
+
+# 显示图表
+fig.show()
+# 要高亮显示的行的索引
