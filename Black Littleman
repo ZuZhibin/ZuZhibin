@@ -1,0 +1,66 @@
+import numpy as np
+import pandas as pd
+import plotly.graph_objects as go
+import plotly.express as px
+
+# Black-Litterman 资产配置模型实现
+def black_litterman_model(P, Q, tau, cov_matrix, pi, omega):
+    # Step 1: 计算调整后的均值
+    M_inverse = np.linalg.inv(np.dot(np.dot(tau, P), cov_matrix).dot(P.T) + omega)
+    adjusted_mean = pi + np.dot(np.dot(tau * cov_matrix, P.T), M_inverse).dot(Q - np.dot(P, pi))
+    
+    # Step 2: 计算调整后的协方差矩阵
+    adjusted_cov = cov_matrix + np.dot(np.dot(tau * cov_matrix, P.T), M_inverse).dot(P).dot(tau * cov_matrix)
+    
+    return adjusted_mean, adjusted_cov
+
+# 定义参数
+cov_matrix = np.array([
+    [0.1, 0.02, 0.03],
+    [0.02, 0.08, 0.01],
+    [0.03, 0.01, 0.09]
+])
+
+pi = np.array([0.05, 0.02, 0.03])  # 市场均衡预期收益率
+P = np.array([
+    [1, -1, 0],
+    [0, 1, -1]
+])  # 投资者观点矩阵
+
+Q = np.array([0.03, 0.01])  # 投资者观点的预期收益率
+tau = 0.025  # 缩放因子
+omega = np.diag([0.0001, 0.0001])  # 投资者观点的不确定性矩阵
+
+# 计算 Black-Litterman 模型的结果
+adjusted_mean, adjusted_cov = black_litterman_model(P, Q, tau, cov_matrix, pi, omega)
+
+# 打印结果
+print("调整后的均值:\n", adjusted_mean)
+print("\n调整后的协方差矩阵:\n", adjusted_cov)
+
+# 画图展示结果
+def plot_results(mean, cov_matrix):
+    assets = ['Asset 1', 'Asset 2', 'Asset 3']
+    
+    # 绘制调整后的均值
+    fig = go.Figure(data=[
+        go.Bar(x=assets, y=mean)
+    ])
+    fig.update_layout(
+        title='Adjusted Expected Returns by Black-Litterman Model',
+        xaxis_title='Assets',
+        yaxis_title='Expected Return'
+    )
+    fig.show()
+
+    # 绘制协方差矩阵
+    fig_cov = px.imshow(cov_matrix, 
+                        labels=dict(x="Assets", y="Assets", color="Covariance"),
+                        x=assets,
+                        y=assets,
+                        title='Adjusted Covariance Matrix by Black-Litterman Model',
+                        color_continuous_scale='viridis')
+    fig_cov.update_xaxes(side="top")
+    fig_cov.show()
+
+plot_results(adjusted_mean, adjusted_cov)
